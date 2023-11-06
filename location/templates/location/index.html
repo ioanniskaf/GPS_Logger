@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Location Info</title>
+		<script
+			data-lat = "{{data.lat}}"
+			data-lng = "{{data.lng}}"
+			data-gate = "{{data.gate}}"
+		>
+			const data = document.currentScript.dataset;
+			let infoWindow;
+
+			const points = {
+				point1: {Gate: data.gate , center: { lat: Number(data.lat), lng: Number(data.lng) },radius:12, color: '#fc574e'},
+				point2: {Gate: data.gate , center: { lat: Number(data.lat), lng: Number(data.lng) },radius:4, color: '#7dff7d'}			
+			}
+			function getCenterMap(points) {
+				let avglat = 0;let avglng = 0;cnt=0;
+				for (const point in points) {
+					avglat += points[point].center.lat
+					avglng += points[point].center.lng
+					cnt+=1
+				}
+		
+				return new google.maps.LatLng(avglat/cnt,avglng/cnt)
+			};
+
+			function initMap() {
+				const map = new google.maps.Map(
+					document.getElementById("map"), 
+					{center: getCenterMap(points),zoom:19}
+				);
+				const pointCircleHIGH = new google.maps.Circle({
+					strokeColor: points.point2.color,
+					strokeOpacity: 0.50,
+					strokeWeight: 0.75,
+					fillColor: points.point2.color,
+					fillOpacity: 0.25,
+					center: points.point2.center,
+					radius: points.point2.radius,
+					map
+				});
+				const pointCircleLOW = new google.maps.Circle({
+					strokeColor: points.point1.color,
+					strokeOpacity: 0.30,
+					strokeWeight: 0.75,
+					fillColor: points.point1.color,
+					fillOpacity: 0.15,
+					center: points.point1.center,
+					radius: points.point1.radius,
+					map
+				});
+
+				
+				const contentString = String(points.point1.Gate)
+				let info = new google.maps.InfoWindow({content:contentString,position: points.point1.center});
+				pointCircleLOW.addListener("click", () => {info.open({anchor: pointCircleLOW,map})});
+				
+				const imageMapType = new google.maps.ImageMapType({
+    				getTileUrl: function (coord, zoom) {
+						console.log(coord,zoom)
+						if (
+							(zoom = 18 && coord.x === 77363 && coord.y === 52044) ||
+							(zoom = 19 && coord.x === 154730 && coord.y === 104090) ||
+							(zoom = 20 && coord.x === 155545 && coord.y === 103949) ||
+							(zoom = 21 && coord.x === 311090 && coord.y === 207898)
+						) {	return 'https://raw.githubusercontent.com/ioanniskaf/test/main/test.png'}
+						else { return ""}
+					},
+					tileSize: new google.maps.Size(512, 512),
+					opacity: 0.3
+				});
+				map.overlayMapTypes.push(imageMapType);
+			}
+			window.initMap = initMap;
+		</script>
+		<style>
+			#map {
+				height: 85%;
+			}
+			.info {
+				height: auto;
+			} 
+			html,body {
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="info">
+			<p>InterviewerID : {{ data.interviewer }}</br>
+				RespodentID  : {{ data.respodent }}</p>
+			<p>
+				Start: {{ data.start }}</br>
+				End  : {{ data.end }}
+			</p>
+		</div>
+		<div id="map"></div>
+		<script
+			src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCRsLBFgDmInsist7oTl-98Y8sQwMewdeo&callback=initMap&libraies=maps&v=weekly"defer>
+		</script>
+	</body>
+</html>
